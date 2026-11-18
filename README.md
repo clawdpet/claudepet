@@ -2,7 +2,7 @@
 
 Un petit Claude en pixel art qui vit sur ton bureau. Il change de tenue selon ce que fait Claude Code, compte les tokens de toutes tes sessions, a un pass de 61 niveaux et un multijoueur avec des codes de salon.
 
-- Site : https://claudepet.coconutsim.workers.dev
+- Site : https://claudepet.casq.dev
 - Télécharger (Windows) : [ClaudePet-Setup-1.1.0.exe](https://github.com/lecasquebtp-blip/claudepet/releases/latest)
 
 Il faut Claude Code et Node.js. L'installeur n'est pas signé : si Windows affiche « Windows a protégé votre ordinateur », clique sur Informations complémentaires, puis Exécuter quand même.
