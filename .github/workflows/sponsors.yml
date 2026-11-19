@@ -1,0 +1,59 @@
+# Refreshes the public sponsors list and publishes it as sponsors.json on the
+# `sponsors-data` branch, so the ClaudePet website can read it without a server.
+#
+# One-time setup: add a repository secret named SPONSORS_TOKEN
+# (Settings > Secrets and variables > Actions). It must be a classic personal
+# access token with the `read:user` scope (add `read:org` if organizations
+# sponsor you). The default GITHUB_TOKEN cannot read sponsorships.
+name: Update sponsors
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-sponsors
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch public sponsors
+        env:
+          SPONSORS_TOKEN: ${{ secrets.SPONSORS_TOKEN }}
+        run: node scripts/fetch-sponsors.mjs "$RUNNER_TEMP/sponsors.json"
+
+      - name: Publish sponsors.json to the sponsors-data branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin sponsors-data >/dev/null 2>&1; then
+            git fetch origin sponsors-data
+            git switch sponsors-data
+          else
+            git switch --orphan sponsors-data
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+
+          cp "$RUNNER_TEMP/sponsors.json" sponsors.json
+          git add sponsors.json
+
+          if git diff --cached --quiet; then
+            echo "Sponsors list unchanged, nothing to publish."
+            exit 0
+          fi
+
+          git commit -m "chore: update sponsors"
+          git push origin sponsors-data
