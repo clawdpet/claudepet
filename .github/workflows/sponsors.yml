@@ -3,8 +3,8 @@
 #
 # One-time setup: add a repository secret named SPONSORS_TOKEN
 # (Settings > Secrets and variables > Actions). It must be a classic personal
-# access token with the `read:user` scope (add `read:org` if organizations
-# sponsor you). The default GITHUB_TOKEN cannot read sponsorships.
+# access token with the `read:user` scope only. The default GITHUB_TOKEN cannot
+# read sponsorships. Sponsors that are organizations are not listed.
 name: Update sponsors
 
 on:

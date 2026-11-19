@@ -7,6 +7,9 @@
 //
 // Only PUBLIC sponsorships are kept, and amounts are never exported: the output
 // carries the tier name only. If anything fails, the output file is left untouched.
+//
+// Sponsors that are organizations are skipped on purpose: reading their fields needs
+// the broader `read:org` scope, and the token is kept to `read:user` only.
 
 import { writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
@@ -25,17 +28,22 @@ query ($after: String) {
         sponsorEntity {
           __typename
           ... on User { login name avatarUrl url }
-          ... on Organization { login name avatarUrl url }
         }
       }
     }
   }
 }`;
 
-// Highest tier first, then oldest sponsor first. Private sponsorships are dropped.
+// Highest tier first, then oldest sponsor first.
+// Private sponsorships and organization sponsors are dropped.
 export const toPublicSponsors = (nodes) =>
   nodes
-    .filter((node) => node.privacyLevel === 'PUBLIC' && node.sponsorEntity?.login)
+    .filter(
+      (node) =>
+        node.privacyLevel === 'PUBLIC' &&
+        node.sponsorEntity?.__typename === 'User' &&
+        node.sponsorEntity.login,
+    )
     .sort(
       (a, b) =>
         (b.tier?.monthlyPriceInCents ?? 0) - (a.tier?.monthlyPriceInCents ?? 0) ||

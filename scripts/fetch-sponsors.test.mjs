@@ -43,6 +43,17 @@ test('name falls back to the login', () => {
   assert.equal(sponsor.name, 'no-name');
 });
 
+test('organization sponsors are skipped (the token has no read:org scope)', () => {
+  const organization = {
+    createdAt: '2026-01-01T00:00:00Z',
+    privacyLevel: 'PUBLIC',
+    tier: { name: 'Companion', monthlyPriceInCents: 500 },
+    sponsorEntity: { __typename: 'Organization' },
+  };
+  const result = toPublicSponsors([organization, node({ login: 'a-user', createdAt: '2026-02-01T00:00:00Z' })]);
+  assert.deepEqual(result.map((sponsor) => sponsor.login), ['a-user']);
+});
+
 test('entries without a sponsor entity are skipped', () => {
   const result = toPublicSponsors([{ createdAt: '2026-01-01T00:00:00Z', privacyLevel: 'PUBLIC', tier: null, sponsorEntity: null }]);
   assert.deepEqual(result, []);
