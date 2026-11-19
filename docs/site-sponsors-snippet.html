@@ -1,0 +1,57 @@
+<!--
+  Paste this block into the ClaudePet website page (e.g. just above the footer).
+  It reads sponsors.json from the `sponsors-data` branch and shows each public
+  sponsor's GitHub avatar, linking to their profile. If the file is missing or
+  empty, the section stays hidden. Avatars of the top tier are drawn larger.
+-->
+<section id="sponsors" hidden>
+  <h2>Sponsors</h2>
+  <ul id="sponsors-list"></ul>
+</section>
+
+<style>
+  #sponsors-list { display: flex; flex-wrap: wrap; gap: 12px; padding: 0; list-style: none; }
+  #sponsors-list img { width: 48px; height: 48px; border-radius: 50%; display: block; }
+  #sponsors-list li[data-tier="Companion"] img { width: 72px; height: 72px; }
+</style>
+
+<script>
+  (async () => {
+    const SPONSORS_URL =
+      'https://raw.githubusercontent.com/lecasquebtp-blip/claudepet/sponsors-data/sponsors.json';
+    try {
+      const response = await fetch(SPONSORS_URL);
+      if (!response.ok) return;
+      const sponsors = await response.json();
+      if (!Array.isArray(sponsors) || sponsors.length === 0) return;
+
+      const list = document.getElementById('sponsors-list');
+      for (const sponsor of sponsors) {
+        // Only trust GitHub URLs; names are set as text, never as HTML.
+        if (!sponsor.url?.startsWith('https://github.com/')) continue;
+        if (!sponsor.avatarUrl?.startsWith('https://avatars.githubusercontent.com/')) continue;
+
+        const item = document.createElement('li');
+        item.dataset.tier = sponsor.tier ?? '';
+
+        const link = document.createElement('a');
+        link.href = sponsor.url;
+        link.rel = 'noopener noreferrer';
+        link.title = sponsor.name;
+
+        const avatar = document.createElement('img');
+        avatar.src = sponsor.avatarUrl;
+        avatar.alt = sponsor.name;
+        avatar.loading = 'lazy';
+
+        link.append(avatar);
+        item.append(link);
+        list.append(item);
+      }
+
+      if (list.children.length > 0) document.getElementById('sponsors').hidden = false;
+    } catch {
+      // Sponsors are a bonus: never break the page if the fetch fails.
+    }
+  })();
+</script>
